@@ -1,0 +1,451 @@
+A51 MACRO ASSEMBLER  BUJIN                                                                07/04/2016 15:13:36 PAGE     1
+
+
+MACRO ASSEMBLER A51 V8.02c
+OBJECT MODULE PLACED IN .\Objects\bujin.obj
+ASSEMBLER INVOKED BY: S:\KeilC51\C51\BIN\A51.EXE bujin.asm SET(SMALL) DEBUG PRINT(.\Listings\bujin.lst) OBJECT(.\Objects
+                      \bujin.obj) EP
+
+LOC  OBJ            LINE     SOURCE
+
+  00B4                 1             KEY BIT P3.4                                    ;KEY=P3.4
+  00B5                 2             DAT BIT P3.5                                    ;DAT=P3.5
+  00B6                 3             CLK BIT P3.6                                    ;CLK=P3.6
+  00B7                 4             CS  BIT P3.7                                    ;CS=P3.7
+                       5             VAR SEGMENT DATA                                ;RAM¶¨Òå±äÁ¿¶Î
+                       6             PROG SEGMENT CODE                               ;ROM¶¨Òå³ÌÐò¶Î
+                       7             STACK SEGMENT IDATA                             ;RAM¶¨Òå¶ÑÕ»¶Î                
+----                   8                     RSEG VAR
+0000                   9             BLANK0:DS 1                                             ;
+0001                  10             ZHUANGTAI:DS 2                                  ;×´Ì¬ÏÔÊ¾
+0003                  11             BLANK1:DS 1                                             ;ÏÔÊ¾»º³åÇø
+0004                  12             DIRECTION:DS 1                                  ;·½Ïò
+0005                  13             BLANK2:DS 1                                             ;
+0006                  14             SPEED:DS 2                                              ;ËÙ¶È  ×ª/·ÖÖÓ
+0008                  15             PAIXU:DS 1                                              ;ÅÄÐò
+0009                  16             DANGWEI:DS 1                                    ;µµÎ»
+000A                  17             SUDU:DS 2                                               ;ËÙ¶Èµ÷½Úµ¥Ôª
+                      18                     
+----                  19                     RSEG STACK                                      ;¶ÑÕ»
+0000                  20                     DS 20
+                      21                             
+----                  22                     CSEG AT 0                                       ;Ö÷³ÌÐò
+                      23                     USING 0
+0000 020000   F       24                     LJMP MAIN
+                      25             
+0003                  26                     ORG 0003H                                       ;Íâ²¿ÖÐ¶Ï
+                      27                     USING 0
+0003 020000   F       28                     LJMP OUTT0
+                      29             
+000B                  30                     ORG 000BH                                       ;¶¨Ê±ÖÐ¶Ï
+                      31                     USING 1
+000B 020000   F       32                     LJMP INT_T0
+                      33                     
+0100                  34                     ORG 0100H
+----                  35                     RSEG PROG
+0000                  36     MAIN:
+0000 758100   F       37             MOV SP,#STACK-1
+0003 75003C   F       38             MOV SUDU,#3CH                                   ;³õÊ¼ËÙ¶È
+0006 7500B0   F       39             MOV SUDU+1,#0B0H
+0009 758901           40             MOV TMOD,#01H                                   ;T0¶¨Ê±²úÉúÂö³å
+000C 85008C   F       41             MOV TH0,SUDU                                    ;50MS
+000F 85008A   F       42             MOV TL0,SUDU+1
+0012 75A882           43             MOV IE,#82H                                             ;¿ªÖÐ¶Ï
+0015 750000   F       44             MOV PAIXU,#0                                    ;ÅÄÐòÎª0
+0018 759000           45             MOV P1,#0                                               ;P1¿ÚÊä³ö                  
+                                                  
+001B 1100     F       46             ACALL INITIAL                                   ;³õÊ¼»¯
+001D D28A             47             SETB IT1                                                ;Íâ²¿ÖÐ¶Ï±ßÑØ´¥·¢·½Ê½
+001F D2A8             48             SETB EX0
+0021                  49     M0:
+0021 120000   F       50             LCALL DELAY20
+0024 120000   F       51             LCALL DISP7279
+0027 120000   F       52             LCALL KEYBOARD
+002A B4FF05           53             CJNE A,#0FFH,M1
+002D 120000   F       54             LCALL DELAY20
+0030 80EF             55             SJMP M0
+0032                  56     M1:
+A51 MACRO ASSEMBLER  BUJIN                                                                07/04/2016 15:13:36 PAGE     2
+
+0032 120000   F       57             LCALL KEYDEAL                                   ;¼ü´¦Àí
+0035 80EA             58             SJMP M0
+                      59     ;-----------------------------------------------------
+0037                  60     KEYDEAL:
+0037 B40A12           61             CJNE A,#0AH,D1                                  ;ÊÇ'A'
+003A B28C             62             CPL TR0                                                 ;TR0¿ªÆô»ò¹Ø±Õ
+003C 208C05           63             JB TR0,D4                                               ;°Ñ×´Ì¬ËÍÈëÏÔÊ¾»º³åÇø
+003F 75000F   F       64             MOV ZHUANGTAI+1,#0FH
+0042 8039             65             SJMP D0
+0044                  66     D4:
+0044 750011   F       67             MOV ZHUANGTAI+1,#11H
+0047 120000   F       68             LCALL SPEEDTEXT                                 ;°ÑËÙ¶È³õÖµ·ÅÈëÏÔ»ºÇø
+004A 8031             69             SJMP D0
+004C                  70     D1:
+004C B40B08           71             CJNE A,#0BH,D2                                  ;ÊÇ'B'
+004F E500     F       72             MOV A,DIRECTION
+0051 B2E0             73             CPL ACC.0                                               ;·½ÏòÈ¡·´£¬²¢ËÍÏÔ»ºÇø
+0053 F500     F       74             MOV DIRECTION,A
+0055 8026             75             SJMP D0
+0057                  76     D2:
+0057 B40C11           77             CJNE A,#0CH,D3                                  ;ÊÇ'C'
+005A E500     F       78             MOV A,DANGWEI                                   
+005C B40400           79             CJNE A,#4,DD2
+005F                  80     DD2:
+005F 501C             81             JNC D0
+0061 0500     F       82             INC DANGWEI                                             ;µµÎ»¼Ó1
+0063 120000   F       83             LCALL DIAOSU                                    ;µ÷ËÙ
+0066 120000   F       84             LCALL SPEEDTEXT                                 ;ËÙÖµ×ª»»
+0069 8012             85             SJMP D0
+006B                  86     D3:
+006B B40D0F           87             CJNE A,#0DH,D0                                  ;ÊÇ'D'
+006E E500     F       88             MOV A,DANGWEI
+0070 B40100           89             CJNE A,#1,DD3
+0073                  90     DD3:
+0073 4008             91             JC D0
+0075 1500     F       92             DEC DANGWEI                                             ;µµÎ»¼õ1
+0077 120000   F       93             LCALL DIAOSU                                    ;µ÷ËÙ
+007A 120000   F       94             LCALL SPEEDTEXT                                 ;ËÙÖµ×ª»»
+007D                  95     D0:
+007D 22               96             RET
+                      97     ;-----------------------------------------------------
+007E                  98     SPEEDTEXT:
+007E E500     F       99             MOV A,DANGWEI                                   ;ËÙ¶ÈÏÔÊ¾²é±í
+0080 23              100             RL A                                                    ;²éË«×Ö½Ú
+0081 900000   F      101             MOV DPTR,#SPEEDTEXTTAB
+0084 93              102             MOVC A,@A+DPTR                                  ;²é¸ß×Ö½Ú
+0085 F500     F      103             MOV SPEED,A
+0087 E500     F      104             MOV A,DANGWEI                                   ;·ÅÏÔ»ºÇø
+0089 23              105             RL A
+008A 2401            106             ADD A,#1                                                ;²éµÍ×Ö½Ú
+008C 93              107             MOVC A,@A+DPTR  
+008D F500     F      108             MOV SPEED+1,A                                   ;·ÅÏÔ»ºÇø
+008F 22              109             RET
+0090                 110     SPEEDTEXTTAB:
+0090 1205            111             DB 12H,05H                                              ;×ªËÙ,0.5
+0092 0005            112             DB 00H,05H                                              ;05
+0094 0100            113             DB 01H,00H                                              ;10
+0096 0200            114             DB 02H,00H                                              ;20
+0098 0600            115             DB 06H,00H                                              ;60
+                     116     ;-----------------------------------------------------
+009A                 117     DIAOSU:
+009A E500     F      118             MOV A,DANGWEI                                   ;ËÙ¶Èµ÷½Ú²é±í
+009C 23              119             RL A
+009D 900000   F      120             MOV DPTR,#SPEEDTAB                              ;²éµµÎ»
+00A0 93              121             MOVC A,@A+DPTR                                  ;¸ù¾ÝµµÎ»¸Ä±ä¶¨Ê±Öµ
+00A1 F500     F      122             MOV SUDU,A      
+A51 MACRO ASSEMBLER  BUJIN                                                                07/04/2016 15:13:36 PAGE     3
+
+00A3 2401            123             ADD A,#1                
+00A5 93              124             MOVC A,@A+DPTR  
+00A6 F500     F      125             MOV SUDU+1,A    
+00A8 22              126             RET                             
+00A9                 127     SPEEDTAB:
+00A9 3CB0            128             DB 3CH,0B0H                     ;50MS
+00AB B1E0            129             DB 0B1H,0E0H            ;20MS
+00AD D8F0            130             DB 0D8H,0F0H            ;10MS
+00AF EC78            131             DB 0ECH,78H                     ;5MS
+00B1 FC18            132             DB 0FCH,18H                     ;1MS
+                     133     ;-----------------------------------------------------
+00B3                 134     INITIAL:
+00B3 750010   F      135             MOV BLANK0,#10H                                 ;ÏÔÊ¾'-'
+00B6 750000   F      136             MOV ZHUANGTAI,#0                                ;ÏÔÊ¾'OF'£¬µç»úÍ£Ö¹
+00B9 75000F   F      137             MOV ZHUANGTAI+1,#0FH
+00BC 750010   F      138             MOV BLANK1,#10H                                 ;ÏÔÊ¾'-'
+00BF 750001   F      139             MOV DIRECTION,#01                               ;·½ÏòÎªÕ
+00C2 750010   F      140             MOV BLANK2,#10H                                 ;ÏÔÊ¾'-'
+00C5 750000   F      141             MOV SPEED,#0                                    ;ËÙ¶ÈÎª0
+00C8 750000   F      142             MOV SPEED+1,#0
+00CB 750000   F      143             MOV DANGWEI,#0                                  ;µµÎ»0µµ
+00CE 22              144             RET
+                     145     ;----------------------------------
+00CF                 146     KEYBOARD:
+00CF D2B4            147             SETB KEY                                                ;KEYÎªÊäÈë
+00D1 A2B4            148             MOV C,KEY                                               
+00D3 4010            149             JC K1                                                   ;ÅÐ¶ÏKEYÊÇ·ñÎªµÍ
+00D5 120000   F      150             LCALL DELAY20                                   ;ÎªµÍ,ÑÓÊ±
+00D8 400B            151             JC K1                                                   ;ÔÙ´ÎÅÐ¶Ï
+00DA 120000   F      152             LCALL KEY1                                              ;¶Á¼üÖµ
+00DD                 153     K0:
+00DD A2B4            154             MOV C,KEY                                               ;ÅÐ¶Ï¼üÊÇ·ñÊÍ·Å
+00DF 50FC            155             JNC K0
+00E1 120000   F      156             LCALL KEY2                                              ;½«¼üÖµ×ª»¯Îª¼üºÅ
+00E4 22              157             RET
+00E5                 158     K1:
+00E5 74FF            159             MOV A,#0FFH                                             ;ÎÞ¼ü£¬A=0FFH
+00E7 22              160             RET
+                     161     
+00E8                 162     KEY1:                                                           
+00E8 C2B7            163             CLR CS                                                  ;CS=0
+00EA 7E1A            164             MOV R6,#1AH                                             ;50us
+00EC                 165     K2:
+00EC DEFE            166             DJNZ R6,K2
+00EE 7415            167             MOV A,#15H                                              ;·¢ËÍ¶Á¼üÖµ¿ØÖÆ×Ö
+00F0 120000   F      168             LCALL STFS
+00F3 7E0C            169             MOV R6,#0CH                                             ;26us
+00F5                 170     K3:
+00F5 DEFE            171             DJNZ R6,K3
+00F7 120000   F      172             LCALL STJS                                              ;½ÓÊÜ¼üÖµ
+00FA D2B7            173             SETB CS
+00FC 22              174             RET
+00FD                 175     KEY2:
+00FD F5F0            176             MOV B,A                                                 ;½«¼üÖµ±£´æ
+00FF 7A00            177             MOV R2,#00H
+0101 7F0F            178             MOV R7,#0FH                                             ;¼üºÅ
+0103                 179     K4:
+0103 EA              180             MOV A,R2
+0104 240A            181             ADD A,#0AH
+0106 83              182             MOVC A,@A+PC                                    ;²é±í±È½Ï¼üÖµ
+0107 B5F002          183             CJNE A,B,K5
+010A 8003            184             SJMP K6
+010C                 185     K5:
+010C 0A              186             INC R2
+010D DFF4            187             DJNZ R7,K4
+010F                 188     K6:
+A51 MACRO ASSEMBLER  BUJIN                                                                07/04/2016 15:13:36 PAGE     4
+
+010F EA              189             MOV A,R2                                                ;Óë¼üÖµÏàµÈ£¬±£´æ¼üºÅ
+0110 22              190             RET
+0111                 191     TAB1:
+0111 00010911        192             DB 00H,01H,09H,11H,02H,0AH,12H,03H,0BH,13H,1BH,1AH,19H,18H,10H,08H      ;0-F
+0115 020A1203                
+0119 0B131B1A                
+011D 19181008                
+                     193     ;----------------------------------------------------------------------         
+0121                 194     DISP7279:
+0121 7D08            195             MOV R5,#8                                               ;ÏÔÊ¾¸öÊ
+0123 7800     F      196             MOV R0,#BLANK0
+0125 7990            197             MOV R1,#90H                                             ;ÏÔÊ¾Î»¿ØÂë
+0127                 198     LP1:
+0127 C2B7            199             CLR CS                                                  
+0129 7E1A            200             MOV R6,#1AH                                             ;CSÎª0
+012B                 201     LP2:                                                            ;ÑÓÊ±50us
+012B DEFE            202             DJNZ R6,LP2
+012D E9              203             MOV A,R1                                                ;·¢ËÍÎ»¿ØÂë
+012E 1100     F      204             ACALL STFS
+0130 7E08            205             MOV R6,#8
+0132                 206     LP3:
+0132 DEFE            207             DJNZ R6,LP3                                             ;18us
+0134 E6              208             MOV A,@R0                                               ;×ª»¯Îª×ÖÐÎÂë
+0135 900000   F      209             MOV DPTR,#TAB2
+0138 93              210             MOVC A,@A+DPTR
+0139 1100     F      211             ACALL STFS                                              ;·¢ËÍ×ÖÐÎÂë
+013B 7E04            212             MOV R6,#4                                               ;10us
+013D                 213     LP4:
+013D DEFE            214             DJNZ R6,LP4
+013F D2B7            215             SETB CS
+0141 08              216             INC R0
+0142 09              217             INC R1
+0143 DDE2            218             DJNZ R5,LP1                                             ;ÊÇ·ñÏÔÊ¾Íê±Ï
+0145 22              219             RET
+0146 7E306D79        220     TAB2:DB 7EH,30H,6DH,79H,33H,5BH,5FH,70H,7FH,7BH  ;0-9
+014A 335B5F70                
+014E 7F7B                    
+0150 771F4E3D        221              DB 77H,1FH,4EH,3DH,4FH,47H                                      ;A-F
+0154 4F47                    
+0156 01              222              DB     01H  ;'-'
+0157 76              223              DB 76H  ;'N'
+0158 FE              224              DB 0FEH ;'0.'
+                     225     ;----------------------------------
+0159                 226     DELAY20:                                        ;20msÑÓÊ±
+0159 7E64            227             MOV R6,#100
+015B                 228     DLY0:
+015B 7F62            229             MOV R7,#98
+015D 00              230             NOP
+015E                 231     DLY1:
+015E DFFE            232             DJNZ R7,DLY1
+0160 DEF9            233             DJNZ R6,DLY0
+0162 22              234             RET
+                     235     ;--------------------------------------------------------------
+0163                 236     STFS:                                           ;·¢ËÍÒ»×Ö½Ú
+0163 7F08            237             MOV R7,#8
+0165                 238     L1:
+0165 33              239             RLC A
+0166 92B5            240             MOV DAT,C                               ;CËÍDATA
+0168 D2B6            241             SETB CLK                                ;CLKÉÏÉÑØ
+016A 7E04            242             MOV R6,#4                               ;8us
+016C                 243     L2:
+016C DEFE            244             DJNZ R6,L2
+016E C2B6            245             CLR CLK                                 ;CLKÏÂ½µÑØ
+0170 7E04            246             MOV R6,#4
+0172                 247     L3:
+0172 DEFE            248             DJNZ R6,L3
+A51 MACRO ASSEMBLER  BUJIN                                                                07/04/2016 15:13:36 PAGE     5
+
+0174 DFEF            249             DJNZ R7,L1
+0176 22              250             RET
+                     251     ;--------------------------------------------------------------
+0177                 252     STJS:                                           ;½ÓÊÕÒ»×Ö½Ú
+0177 7F08            253             MOV R7,#8
+0179                 254     Q1:
+0179 D2B6            255             SETB CLK                                ;CLKÉÏÉÑØ
+017B D2B5            256             SETB DAT                                ;P¿ÚÖÃ'1'
+017D 7E04            257             MOV R6,#4                               ;8us
+017F                 258     Q2:
+017F DEFE            259             DJNZ R6,Q2
+0181 A2B5            260             MOV C,DAT                               ;½ÓÊÕÊ¾Ý
+0183 33              261             RLC A
+0184 C2B6            262             CLR CLK
+0186 7E02            263             MOV R6,#2
+0188                 264     Q3:
+0188 DEFE            265             DJNZ R6,Q3
+018A DFED            266             DJNZ R7,Q1
+018C 22              267             RET
+                     268     ;----------------------------------------------------------
+018D                 269     OUTT0:
+018D C0D0            270             PUSH PSW                                                        ;Íâ²¿Âö³åÆô¶¯
+018F C0E0            271             PUSH ACC
+0191 0500     F      272             INC PAIXU                                                       ;ÅÄÐò¼Ó1
+0193 E500     F      273             MOV A,PAIXU                                                     
+0195 B40800          274             CJNE A,#08,OUT0                                         ;ÊÇ·ñµ½8£¿
+0198                 275     OUT0:
+0198 4003            276             JC OUT1
+019A 750000   F      277             MOV PAIXU,#0                                            ;µ½ÁË,×ªÎª0Ì¬
+019D                 278     OUT1:
+019D E500     F      279             MOV A,PAIXU
+019F 900000   F      280             MOV DPTR,#OUTTAB                                        ;²é±í
+01A2 93              281             MOVC A,@A+DPTR
+01A3 F590            282             MOV P1,A                ;2
+01A5 D0E0            283             POP ACC                 ;2
+01A7 D0D0            284             POP PSW                 ;2
+01A9 120000   F      285             LCALL DISP7279
+01AC 32              286             RETI                    ;1
+01AD 060E0C0D        287     OUTTAB:DB 06H,0EH,0CH,0DH,09H,0BH,03H,07H
+01B1 090B0307                
+                     288     ;----------------------------------------------------------
+01B5                 289     INT_T0:
+01B5 C0D0            290             PUSH PSW                                                ;±£»¤ÏÖ³¡
+01B7 C0E0            291             PUSH ACC
+01B9 D2D3            292             SETB RS0                                                ;Ê¹ÓÃ¹¤×÷¼Ä´æÆ÷1
+01BB 85008C   F      293             MOV TH0,SUDU                                    ;ÖØ×°¶¨Ê±Öµ
+01BE 85008A   F      294             MOV TL0,SUDU+1
+01C1 0500     F      295             INC PAIXU                                               ;ÅÄÐò¼Ó1,×´Ì¬±ä»¯
+01C3 E500     F      296             MOV A,PAIXU
+01C5 B40800          297             CJNE A,#08,II0                                  ;ÅÄÐòµ½8£¿
+01C8                 298     II0:
+01C8 4003            299             JC II1
+01CA 750000   F      300             MOV PAIXU,#0                                    ;µ½ÁË,×ªÎª0Ì¬
+01CD                 301     II1:
+01CD E500     F      302             MOV A,DIRECTION                                 ;¸ù¾Ý·½Ïò²é±í
+01CF 20E005          303             JB ACC.0,II5
+01D2 900000   F      304             MOV DPTR,#FANTAB                                ;·½ÏòÎª0²é·´×ª±í
+01D5 8003            305             SJMP II6
+01D7                 306     II5:
+01D7 900000   F      307             MOV DPTR,#TAB                                   ;·½ÏòÎª1²é·´×ª±í
+01DA                 308     II6:
+01DA E500     F      309             MOV A,PAIXU
+01DC 93              310             MOVC A,@A+DPTR
+01DD F590            311             MOV P1,A                                                ;ËÍP¿ÚÏÔÊ¾
+01DF                 312     II4:
+01DF D0E0            313             POP ACC
+A51 MACRO ASSEMBLER  BUJIN                                                                07/04/2016 15:13:36 PAGE     6
+
+01E1 D0D0            314             POP PSW
+01E3 32              315             RETI
+01E4 060E0C0D        316     TAB:DB 06H,0EH,0CH,0DH,09H,0BH,03H,07H
+01E8 090B0307                
+01EC                 317     FANTAB:
+01EC 07030B09        318             DB 07H,03H,0BH,09H,0DH,0CH,0EH,06H
+01F0 0D0C0E06                
+                     319             END
+A51 MACRO ASSEMBLER  BUJIN                                                                07/04/2016 15:13:36 PAGE     7
+
+SYMBOL TABLE LISTING
+------ ----- -------
+
+
+N A M E             T Y P E  V A L U E   ATTRIBUTES
+
+ACC. . . . . . . .  D ADDR   00E0H   A   
+B. . . . . . . . .  D ADDR   00F0H   A   
+BLANK0 . . . . . .  D ADDR   0000H   R   SEG=VAR
+BLANK1 . . . . . .  D ADDR   0003H   R   SEG=VAR
+BLANK2 . . . . . .  D ADDR   0005H   R   SEG=VAR
+CLK. . . . . . . .  B ADDR   00B0H.6 A   
+CS . . . . . . . .  B ADDR   00B0H.7 A   
+D0 . . . . . . . .  C ADDR   007DH   R   SEG=PROG
+D1 . . . . . . . .  C ADDR   004CH   R   SEG=PROG
+D2 . . . . . . . .  C ADDR   0057H   R   SEG=PROG
+D3 . . . . . . . .  C ADDR   006BH   R   SEG=PROG
+D4 . . . . . . . .  C ADDR   0044H   R   SEG=PROG
+DANGWEI. . . . . .  D ADDR   0009H   R   SEG=VAR
+DAT. . . . . . . .  B ADDR   00B0H.5 A   
+DD2. . . . . . . .  C ADDR   005FH   R   SEG=PROG
+DD3. . . . . . . .  C ADDR   0073H   R   SEG=PROG
+DELAY20. . . . . .  C ADDR   0159H   R   SEG=PROG
+DIAOSU . . . . . .  C ADDR   009AH   R   SEG=PROG
+DIRECTION. . . . .  D ADDR   0004H   R   SEG=VAR
+DISP7279 . . . . .  C ADDR   0121H   R   SEG=PROG
+DLY0 . . . . . . .  C ADDR   015BH   R   SEG=PROG
+DLY1 . . . . . . .  C ADDR   015EH   R   SEG=PROG
+EX0. . . . . . . .  B ADDR   00A8H.0 A   
+FANTAB . . . . . .  C ADDR   01ECH   R   SEG=PROG
+IE . . . . . . . .  D ADDR   00A8H   A   
+II0. . . . . . . .  C ADDR   01C8H   R   SEG=PROG
+II1. . . . . . . .  C ADDR   01CDH   R   SEG=PROG
+II4. . . . . . . .  C ADDR   01DFH   R   SEG=PROG
+II5. . . . . . . .  C ADDR   01D7H   R   SEG=PROG
+II6. . . . . . . .  C ADDR   01DAH   R   SEG=PROG
+INITIAL. . . . . .  C ADDR   00B3H   R   SEG=PROG
+INT_T0 . . . . . .  C ADDR   01B5H   R   SEG=PROG
+IT1. . . . . . . .  B ADDR   0088H.2 A   
+K0 . . . . . . . .  C ADDR   00DDH   R   SEG=PROG
+K1 . . . . . . . .  C ADDR   00E5H   R   SEG=PROG
+K2 . . . . . . . .  C ADDR   00ECH   R   SEG=PROG
+K3 . . . . . . . .  C ADDR   00F5H   R   SEG=PROG
+K4 . . . . . . . .  C ADDR   0103H   R   SEG=PROG
+K5 . . . . . . . .  C ADDR   010CH   R   SEG=PROG
+K6 . . . . . . . .  C ADDR   010FH   R   SEG=PROG
+KEY. . . . . . . .  B ADDR   00B0H.4 A   
+KEY1 . . . . . . .  C ADDR   00E8H   R   SEG=PROG
+KEY2 . . . . . . .  C ADDR   00FDH   R   SEG=PROG
+KEYBOARD . . . . .  C ADDR   00CFH   R   SEG=PROG
+KEYDEAL. . . . . .  C ADDR   0037H   R   SEG=PROG
+L1 . . . . . . . .  C ADDR   0165H   R   SEG=PROG
+L2 . . . . . . . .  C ADDR   016CH   R   SEG=PROG
+L3 . . . . . . . .  C ADDR   0172H   R   SEG=PROG
+LP1. . . . . . . .  C ADDR   0127H   R   SEG=PROG
+LP2. . . . . . . .  C ADDR   012BH   R   SEG=PROG
+LP3. . . . . . . .  C ADDR   0132H   R   SEG=PROG
+LP4. . . . . . . .  C ADDR   013DH   R   SEG=PROG
+M0 . . . . . . . .  C ADDR   0021H   R   SEG=PROG
+M1 . . . . . . . .  C ADDR   0032H   R   SEG=PROG
+MAIN . . . . . . .  C ADDR   0000H   R   SEG=PROG
+OUT0 . . . . . . .  C ADDR   0198H   R   SEG=PROG
+OUT1 . . . . . . .  C ADDR   019DH   R   SEG=PROG
+OUTT0. . . . . . .  C ADDR   018DH   R   SEG=PROG
+OUTTAB . . . . . .  C ADDR   01ADH   R   SEG=PROG
+P1 . . . . . . . .  D ADDR   0090H   A   
+A51 MACRO ASSEMBLER  BUJIN                                                                07/04/2016 15:13:36 PAGE     8
+
+P3 . . . . . . . .  D ADDR   00B0H   A   
+PAIXU. . . . . . .  D ADDR   0008H   R   SEG=VAR
+PROG . . . . . . .  C SEG    01F4H       REL=UNIT
+PSW. . . . . . . .  D ADDR   00D0H   A   
+Q1 . . . . . . . .  C ADDR   0179H   R   SEG=PROG
+Q2 . . . . . . . .  C ADDR   017FH   R   SEG=PROG
+Q3 . . . . . . . .  C ADDR   0188H   R   SEG=PROG
+RS0. . . . . . . .  B ADDR   00D0H.3 A   
+SP . . . . . . . .  D ADDR   0081H   A   
+SPEED. . . . . . .  D ADDR   0006H   R   SEG=VAR
+SPEEDTAB . . . . .  C ADDR   00A9H   R   SEG=PROG
+SPEEDTEXT. . . . .  C ADDR   007EH   R   SEG=PROG
+SPEEDTEXTTAB . . .  C ADDR   0090H   R   SEG=PROG
+STACK. . . . . . .  I SEG    0014H       REL=UNIT
+STFS . . . . . . .  C ADDR   0163H   R   SEG=PROG
+STJS . . . . . . .  C ADDR   0177H   R   SEG=PROG
+SUDU . . . . . . .  D ADDR   000AH   R   SEG=VAR
+TAB. . . . . . . .  C ADDR   01E4H   R   SEG=PROG
+TAB1 . . . . . . .  C ADDR   0111H   R   SEG=PROG
+TAB2 . . . . . . .  C ADDR   0146H   R   SEG=PROG
+TH0. . . . . . . .  D ADDR   008CH   A   
+TL0. . . . . . . .  D ADDR   008AH   A   
+TMOD . . . . . . .  D ADDR   0089H   A   
+TR0. . . . . . . .  B ADDR   0088H.4 A   
+VAR. . . . . . . .  D SEG    000CH       REL=UNIT
+ZHUANGTAI. . . . .  D ADDR   0001H   R   SEG=VAR
+
+
+REGISTER BANK(S) USED: 0 1 
+
+
+ASSEMBLY COMPLETE.  0 WARNING(S), 0 ERROR(S)

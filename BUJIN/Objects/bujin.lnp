@@ -1,0 +1,3 @@
+".\Objects\bujin.obj" 
+TO ".\Objects\bujin" 
+PRINT(".\Listings\bujin.m51") RAMSIZE(256) 
